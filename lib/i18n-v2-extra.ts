@@ -5,6 +5,8 @@
 export const v2Extra: Record<'ru' | 'en', Record<string, string>> = {
 	ru: {
 		'Yuborilmoqda…': 'Отправляется…',
+		"so'm / oy": 'сум / мес',
+		'300 mln': '300 млн',
 		'Til': 'Язык',
 		"Ariza yuborish orqali siz shaxsiy ma'lumotlaringizni qayta ishlashga rozilik bildirasiz":
 			'Отправляя заявку, вы соглашаетесь на обработку персональных данных',
@@ -137,6 +139,8 @@ export const v2Extra: Record<'ru' | 'en', Record<string, string>> = {
 	},
 	en: {
 		'Yuborilmoqda…': 'Sending…',
+		"so'm / oy": 'UZS / mo',
+		'300 mln': '300 mln',
 		'Til': 'Language',
 		"Ariza yuborish orqali siz shaxsiy ma'lumotlaringizni qayta ishlashga rozilik bildirasiz":
 			'By submitting the form you consent to the processing of your personal data',

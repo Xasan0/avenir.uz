@@ -95,6 +95,48 @@ function isCompletePhone(value: string) {
   return digits.length >= 7 && digits.length <= 15
 }
 
+/* Maydon belgilari. Saytdagi boshqa ikonkalar bilan bir tilda: kontur, 1.7
+   qalinlik, rang `currentColor` — ya'ni maydon fokusga kirganda CSS uni
+   o'zgartira oladi. */
+const FIELD_ICONS = {
+  user: (
+    <>
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
+    </>
+  ),
+  phone: (
+    <path d="M7.2 3.5h3l1.4 3.5-2 1.4a11 11 0 0 0 5 5l1.4-2 3.5 1.4v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 5.2 5.7a2 2 0 0 1 2-2.2Z" />
+  ),
+  telegram: (
+    <path d="M21.5 4L2.8 11.2l5.6 1.8L19 6.5l-8.2 8.1.3 5.9 2.8-4 4.4 3.2z" />
+  ),
+  chart: (
+    <>
+      <path d="M3.5 16.5l5-5 3.5 3.5 8-8" />
+      <path d="M15.5 7h5v5" />
+    </>
+  ),
+}
+
+function FieldIcon({ name }: { name: keyof typeof FIELD_ICONS }) {
+  return (
+    <svg
+      className="field__ic"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {FIELD_ICONS[name]}
+    </svg>
+  )
+}
+
 export function V2ContactForm({ lang }: { lang: Language }) {
   const { t } = useLanguage()
   const [form, setForm] = useState({
@@ -224,64 +266,86 @@ export function V2ContactForm({ lang }: { lang: Language }) {
     )
   }
 
+  /* `form--wide`: maydonlar bitta ustunga tizilmaydi, keng ekranda yonma-yon
+     turadi (v2.css, `.form--wide`). Formaning o'z kartochkasi yo'q —
+     maydonlar to'g'ridan-to'g'ri bo'lim qutisi ustida turadi.
+     Har bir maydonning o'z belgisi bor: to'rttasi bir xil dumaloq quti bo'lib
+     turganda qaysi biri nima uchunligi faqat yozuvdan bilinardi. */
   return (
-    <form className="form" onSubmit={submit} noValidate>
+    <form className="form form--wide" onSubmit={submit} noValidate>
       <div className="field">
         <label htmlFor="fn">{tv(lang, 'Ismingiz')}</label>
-        <input
-          id="fn"
-          name="name"
-          type="text"
-          placeholder={tva(lang, 'Ism familiya')}
-          required
-          maxLength={80}
-          autoComplete="name"
-          value={form.name}
-          onChange={change}
-        />
+        <div className="field__c">
+          <FieldIcon name="user" />
+          <input
+            id="fn"
+            name="name"
+            type="text"
+            placeholder={tva(lang, 'Ism familiya')}
+            required
+            maxLength={80}
+            autoComplete="name"
+            value={form.name}
+            onChange={change}
+          />
+        </div>
       </div>
       <div className="field">
         <label htmlFor="fp">{tv(lang, 'Telefon raqam')}</label>
-        <input
-          id="fp"
-          name="phone"
-          type="tel"
-          required
-          minLength={9}
-          autoComplete="tel"
-          value={form.phone}
-          onChange={change}
-        />
+        <div className="field__c">
+          <FieldIcon name="phone" />
+          <input
+            id="fp"
+            name="phone"
+            type="tel"
+            required
+            minLength={9}
+            autoComplete="tel"
+            value={form.phone}
+            onChange={change}
+          />
+        </div>
       </div>
       <div className="field">
         <label htmlFor="ft">{tv(lang, 'Telegram username')}</label>
-        <input
-          id="ft"
-          name="telegramUsername"
-          type="text"
-          placeholder={tva(lang, '@username')}
-          required
-          maxLength={64}
-          value={form.telegramUsername}
-          onChange={change}
-        />
+        <div className="field__c">
+          <FieldIcon name="telegram" />
+          <input
+            id="ft"
+            name="telegramUsername"
+            type="text"
+            placeholder={tva(lang, '@username')}
+            required
+            maxLength={64}
+            value={form.telegramUsername}
+            onChange={change}
+          />
+        </div>
       </div>
       <div className="field">
         <label htmlFor="fo">{tv(lang, 'Aylanmangiz')}</label>
-        <input
-          id="fo"
-          name="employeeCount"
-          type="text"
-          placeholder={tva(lang, 'Masalan: oyiga 300 mln')}
-          maxLength={32}
-          value={form.employeeCount}
-          onChange={change}
-        />
+        {/* O'lchov birligi maydonning ichida turadi: «300 mln» ni oyiga demi,
+            yiliga demi deb o'ylab o'tirmaydi. */}
+        <div className="field__c field__c--suf">
+          <FieldIcon name="chart" />
+          <input
+            id="fo"
+            name="employeeCount"
+            type="text"
+            placeholder={tva(lang, '300 mln')}
+            maxLength={32}
+            value={form.employeeCount}
+            onChange={change}
+          />
+          <span className="field__suf" aria-hidden="true">{tv(lang, "so'm / oy")}</span>
+        </div>
       </div>
       {/* Xizmatlar va keyslar sahifalaridagi tugma shu formaga olib keladi va
           «qisqacha yozing» deb va'da qiladi — yozadigan joy esa yo'q edi.
-          Majburiy emas: birinchi aloqada ortiqcha to'siq qo'ymaymiz. */}
-      <div className="field">
+          Majburiy emas: birinchi aloqada ortiqcha to'siq qo'ymaymiz.
+          `field--full`: erkin matn qisqa maydonlar yoniga siqilmaydi, keng
+          ekranda ham butun qatorni egallaydi. */}
+      <div className="field field--full">
         <label htmlFor="fm">{tv(lang, 'Nima kerak')}</label>
         <textarea
           id="fm"
@@ -306,34 +370,41 @@ export function V2ContactForm({ lang }: { lang: Language }) {
         style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
       />
 
-      <button className="btn btn--w" type="submit" disabled={sending}>
-        {sending ? tv(lang, 'Yuborilmoqda…') : tv(lang, 'Xabar yuborish')}{' '}
-        <span className="btn__ar">→</span>
-      </button>
-      {/* Rozilik tugmaning yonida turishi kerak: forma ism, telefon, Telegram
-          va aylanmani yig'adi va ularni CRM bilan Telegram ga uzatadi, ya'ni
-          bu shaxsiy ma'lumotlarga ishlov berish. Maxfiylik siyosatiga havola
-          shu yerda — podvaldagi kichkina qatorda emas. */}
-      <p className="form__n form__c">
-        {tv(lang, "Ariza yuborish orqali siz shaxsiy ma'lumotlaringizni qayta ishlashga rozilik bildirasiz")}
-        {' · '}
-        <Link href={localizedPath(lang, '/privacy')}>{tv(lang, 'Maxfiylik siyosati')}</Link>
-      </p>
-      {error ? (
-        <p className="form__n form__c" role="alert" style={{ color: '#F87171' }}>
-          {error}
-          {offerTelegram ? (
-            <>
-              {' · '}
-              <a href="https://t.me/avenir_uz" target="_blank" rel="noopener noreferrer">
-                {tv(lang, 'Telegram')}
-              </a>
-            </>
-          ) : null}
-        </p>
-      ) : (
-        <p className="form__n">{tv(lang, '24 soat ichida javob beramiz')}</p>
-      )}
+      {/* Tugma va izohlar — bitta qatorda: keng formada tugma butun kenglikka
+          cho'zilmasin, izohlar esa uning yonida bo'sh joyni to'ldirsin.
+          Tor ekranda ustma-ust tushadi, tartib o'zgarmaydi: avval tugma. */}
+      <div className="form__foot">
+        <button className="btn btn--w" type="submit" disabled={sending}>
+          {sending ? tv(lang, 'Yuborilmoqda…') : tv(lang, 'Xabar yuborish')}{' '}
+          <span className="btn__ar">→</span>
+        </button>
+        <div className="form__notes">
+          {/* Rozilik tugmaning yonida turishi kerak: forma ism, telefon, Telegram
+              va aylanmani yig'adi va ularni CRM bilan Telegram ga uzatadi, ya'ni
+              bu shaxsiy ma'lumotlarga ishlov berish. Maxfiylik siyosatiga havola
+              shu yerda — podvaldagi kichkina qatorda emas. */}
+          <p className="form__n form__c">
+            {tv(lang, "Ariza yuborish orqali siz shaxsiy ma'lumotlaringizni qayta ishlashga rozilik bildirasiz")}
+            {' · '}
+            <Link href={localizedPath(lang, '/privacy')}>{tv(lang, 'Maxfiylik siyosati')}</Link>
+          </p>
+          {error ? (
+            <p className="form__n form__c" role="alert" style={{ color: '#F87171' }}>
+              {error}
+              {offerTelegram ? (
+                <>
+                  {' · '}
+                  <a href="https://t.me/avenir_uz" target="_blank" rel="noopener noreferrer">
+                    {tv(lang, 'Telegram')}
+                  </a>
+                </>
+              ) : null}
+            </p>
+          ) : (
+            <p className="form__n">{tv(lang, '24 soat ichida javob beramiz')}</p>
+          )}
+        </div>
+      </div>
     </form>
   )
 }

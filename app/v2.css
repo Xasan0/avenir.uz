@@ -86,8 +86,16 @@ body {
 
 h1, h2, h3, h4 { margin: 0; font-weight: 600; line-height: 1.06; letter-spacing: -0.035em; }
 p { margin: 0; }
-a { color: inherit; text-decoration: none; }
-img { display: block; max-width: 100%; }
+/* Mobil brauzerlar havolaga tegilganda uning ustiga kulrang to'rtburchak
+   yoqadi — u karta radiusini takrorlamaydi va skroll paytida ham chaqnab
+   ketadi. Fokus halqasi (`:focus-visible`) o'z joyida qoladi. */
+a { color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+/* `-webkit-user-drag: none` — telefonda rasmni bosib turib surganda brauzer
+   buni SAHIFANI aylantirish emas, RASMNI SUDRASH deb qabul qilardi: sahifa
+   joyida qotib turar, rasmning soyasi esa barmoq ortidan yurardi. Bu yerda
+   sudrab boradigan joy yo'q, shuning uchun imkoniyatning o'zi o'chiriladi
+   (Blink va WebKit ikkalasi ham shu xossani o'qiydi). */
+img { display: block; max-width: 100%; -webkit-user-drag: none; }
 /* textarea ham shu yerda: brauzer unga sukut bo'yicha monospace beradi va
    «Nima kerak» maydoni qolgan maydonlardan butunlay boshqacha ko'rinardi. */
 button, input, textarea { font: inherit; color: inherit; }
@@ -232,9 +240,36 @@ button, input, textarea { font: inherit; color: inherit; }
   opacity: 0.5; transition: opacity 0.5s var(--ease);
   pointer-events: none;
 }
-.gc:hover { transform: translateY(-3px); box-shadow: 0 26px 62px -24px rgba(37,99,235,0.55); }
-.gc:hover::before { opacity: 1; }
+/* Hover — faqat sichqonchali qurilmada. Sensorli ekranda brauzer tegilgan
+   elementga `:hover` ni YOPISHTIRIB qo'yadi va uni boshqa joyga tegilmaguncha
+   olib tashlamaydi: skroll paytida barmoq tekkan karta ko'tarilib, rasmi
+   kattalashib qoladi — «kartochka bosilib qolgan» ko'rinish shundan. */
+@media (hover: hover) and (pointer: fine) {
+  .gc:hover { transform: translateY(-3px); box-shadow: 0 26px 62px -24px rgba(37,99,235,0.55); }
+  .gc:hover::before { opacity: 1; }
+}
 .gc.is-lit::before { opacity: 1; }
+/* Karta-havola barmoqqa yopishib qolmasin.
+   Telefonda kartani bosib turib yuqoriga surilganda skrollni uch xil ishtiyoq
+   o'g'irlab ketardi — sahifa joyida qotar, kartaning o'zi barmoq ortidan
+   yurardi:
+     1) HAVOLANI SUDRASH. Asosiy sabab shu: brauzer uchun har qanday <a>
+        sudraladigan manba, va rasm emas, aynan havola ko'chirma tasvir bo'lib
+        ko'tarilardi;
+     2) uzun bosishda matn belgilash — barmoq skroll o'rniga belgilashni
+        cho'zardi (karta butunlay havola, unda alohida belgilanadigan matn
+        yo'q);
+     3) iOS dagi uzun bosish menyusi (`-webkit-touch-callout`) — u ham
+        havolaning tasvirini ko'tarib, barmoq ortidan yurgizadi.
+   `touch-action` esa brauzerga oldindan aytib qo'yadi: bu kartadan faqat
+   vertikal skroll va masshtab boshlanadi — u imo-ishorani tanib o'tirmay,
+   birinchi harakatdanoq aylantiraveradi. */
+a.gc {
+  touch-action: pan-y pinch-zoom;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none; user-select: none;
+}
 
 /* ==========================================================================
    Yuqori panel
@@ -1141,8 +1176,19 @@ button, input, textarea { font: inherit; color: inherit; }
   filter: var(--img-f); transition: transform 0.9s var(--out), filter 0.6s var(--ease); }
 .wc__img::after { content: ''; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(120% 90% at 50% 0%, rgba(37,99,235,0.3) 0%, rgba(var(--bgc),0.72) 78%); transition: opacity 0.55s var(--ease); }
-.wc:hover .wc__img img { transform: scale(1.05); filter: none; }
-.wc:hover .wc__img::after { opacity: 0; }
+@media (hover: hover) and (pointer: fine) {
+  .wc:hover .wc__img img { transform: scale(1.05); filter: none; }
+  .wc:hover .wc__img::after { opacity: 0; }
+}
+/* Sensorli ekranda ochiq holat boshidanoq. Rasm o'chirilgan (kulrang, 0.58
+   yorug'lik) holatda turib, faqat hover da ochilardi — telefonda esa hover
+   yo'q: ish namunasi kartani BOSMASDAN ko'rinmasdi. Ilgari uni tasodifan
+   yopishib qolgan `:hover` ochib berardi, ya'ni «bosilib qolgan karta»
+   nuqsoni bir vaqtning o'zida yagona ko'rish usuli ham edi. */
+@media (hover: none) {
+  .wc__img img { filter: grayscale(0.1) brightness(0.94); }
+  .wc__img::after { opacity: 0.3; }
+}
 .wc__b { padding: 1.1rem 0.6rem 0.9rem; display: grid; gap: 0.45rem; }
 .wc__m { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: var(--b3); }
 .wc__m span { color: var(--w-34); margin-left: auto; }
@@ -1151,7 +1197,7 @@ button, input, textarea { font: inherit; color: inherit; }
 .wc__go { margin-top: 0.45rem; display: inline-flex; align-items: center; gap: 0.4rem;
   font-size: 0.8125rem; color: var(--b3); }
 .wc__go i { font-style: normal; transition: transform 0.35s var(--out); }
-.wc:hover .wc__go i { transform: translateX(4px); }
+@media (hover: hover) and (pointer: fine) { .wc:hover .wc__go i { transform: translateX(4px); } }
 
 /* ==========================================================================
    Jarayon
@@ -1192,13 +1238,17 @@ button, input, textarea { font: inherit; color: inherit; }
 .final .aura--a { width: 700px; height: 700px; left: -180px; top: -260px; opacity: 0.7; }
 .final__in { position: relative; z-index: 2; }
 .final h2 { font-size: clamp(2.2rem, 6.4vw, 4.5rem); font-weight: 700; letter-spacing: -0.05em; line-height: 1.02; max-width: 15ch; }
-.final__grid { display: grid; gap: clamp(2rem, 4vw, 3.5rem); margin-top: clamp(2.5rem, 5vw, 3.5rem); }
-/* bir ustunda: avval to'ldiriladigan maydonlar, so'ng aloqa va ijtimoiy tarmoqlar */
-.final__grid > .form { order: -1; }
-@media (min-width: 1024px) { .final__grid { grid-template-columns: minmax(0,1fr) minmax(0,0.92fr); }
-  .final__grid > .form { order: 0; } }
-.cols { display: grid; gap: 2rem; }
-@media (min-width: 480px) { .cols { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+/* Forma butun kenglikni oladi, aloqa va ijtimoiy tarmoqlar — uning ostida.
+   Ilgari bu yerda 1024px dan boshlab ikki ustun bor edi: forma bo'lim
+   kengligining yarmiga siqilib, maydonlar bittadan tizilib ketardi. */
+.final__grid { display: grid; gap: clamp(1.75rem, 3.5vw, 2.75rem); margin-top: clamp(2.2rem, 4.5vw, 3.2rem); }
+.final__foot { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+  gap: 1.4rem 2.5rem; padding-top: clamp(1.3rem, 2.6vw, 1.9rem); border-top: 1px solid var(--line); }
+/* Aloqa qatori: sarlavha o'z satrida, ma'lumotlar yonma-yon */
+.final__foot .col { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 1.6rem; }
+.final__foot .col h5 { flex: 1 0 100%; margin: 0 0 0.15rem; }
+.col--soc { gap: 0.3rem 1rem; }
+.col--soc .socials { margin-top: 0; }
 .col h5 { margin: 0 0 0.85rem; font-size: 0.8125rem; font-weight: 400; color: var(--w-55); }
 .col a, .col p { display: block; color: var(--w-72); font-size: 1rem; transition: color 0.25s var(--ease); }
 .col a:hover { color: var(--white); }
@@ -1209,28 +1259,104 @@ button, input, textarea { font: inherit; color: inherit; }
 .socials a:hover { background: rgba(37,99,235,0.3); border-color: rgba(96,165,250,0.6); transform: translateY(-3px); }
 .socials svg { width: 18px; height: 18px; }
 
-.form { display: grid; gap: 0.9rem; align-content: start; padding: clamp(1.4rem, 3vw, 2rem);
-  border: 1px solid var(--line-2); border-radius: var(--r-lg);
-  background: linear-gradient(170deg, rgba(var(--ink),0.09), rgba(var(--ink),0.02));
-  box-shadow: inset 0 1px 0 rgba(var(--ink),0.3), 0 34px 70px -38px var(--sh2); }
-.field { display: grid; gap: 0.4rem; }
-.field label { font-size: 0.75rem; color: var(--w-55); }
+/* Forma o'z kartochkasisiz. Bo'limning o'zi (.final) allaqachon 40px radiusli
+   katta quti; uning ichiga 24px radiusli yana bitta quti, uning ichiga esa
+   dumaloq maydonlar qo'yilganda BITTA shakl uch qavat takrorlanardi — blok shu
+   sababli qimmat emas, oddiy ko'rinardi. Endi maydonlar to'g'ridan-to'g'ri
+   bo'lim ustida turadi: bitta quti, ichida maydonlar. */
+.form { display: grid; gap: 0.9rem; align-content: start; }
+.field { display: grid; gap: 0.5rem; }
+/* Maydon nomi — ustidagi kichkina bosh harfli yozuv: maydon bilan
+   raqobatlashmaydi, ko'z esa ustundan ustunga o'tayotib uni tez ilib oladi. */
+.field label { font-size: 0.6875rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--w-40); }
 /* textarea maydonlar bilan bir xil ko'rinadi — o'zining hech qanday uslubi yo'q */
-.field input, .field textarea { border: 1px solid var(--line-2); border-radius: 14px; padding: 0.85rem 1rem;
-  background: linear-gradient(180deg, rgba(var(--ink),0.09), rgba(var(--ink),0.03));
-  box-shadow: inset 0 1px 0 rgba(var(--ink),0.25);
+/* Maydonning doimiy chegarasi yo'q: kartochka ketgach, beshta oq kontur
+   bo'limdagi eng ko'zga tashlanadigan narsa bo'lib qolardi. Endi maydon —
+   shunchaki biroz yorug'roq to'ldirish, chegara esa faqat fokusda paydo
+   bo'ladi. `transparent` chegara joyni oldindan egallab turadi: fokusda
+   maydon bir piksel ham sakramaydi. */
+.field input, .field textarea { border: 1px solid transparent; border-radius: 12px; padding: 0.95rem 1.05rem;
+  background: rgba(var(--ink),0.06);
   transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.3s var(--ease); }
+.field input:hover, .field textarea:hover { background: rgba(var(--ink),0.085); }
 .field textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
 .field input::placeholder, .field textarea::placeholder { color: var(--w-40); }
-.field input:focus, .field textarea:focus { outline: none; border-color: rgba(96,165,250,0.7);
-  box-shadow: inset 0 1px 0 rgba(var(--ink),0.4), 0 0 0 4px rgba(37,99,235,0.18); }
-.form .btn { justify-content: center; margin-top: 0.3rem; }
+.field input:focus, .field textarea:focus { outline: none; border-color: rgba(96,165,250,0.75);
+  background: rgba(var(--ink),0.1); box-shadow: 0 0 0 4px rgba(37,99,235,0.18); }
+/* Tugma ham maydonlar bilan bir xil radiusda: saytning qolgan joyidagi
+   to'liq dumaloq (999px) tugma bu yerda yana bitta dumaloq shakl bo'lib,
+   maydonlar qatoridan ajralib turardi. */
+.form .btn { justify-content: center; margin-top: 0.3rem; border-radius: 12px; }
 .form__n { text-align: center; font-size: 0.75rem; color: var(--w-55); }
 /* Rozilik qatori — huquqiy matn, uni o'qib bo'lishi SHART, shuning uchun
    bu yerda --w-34 (kontrast 3,02:1) o'rniga yorqinroq ton olingan. */
 .form__c { margin-top: 0.7rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
 .form__c a { color: var(--b3); text-decoration: underline; text-underline-offset: 2px; }
 .form__c a:hover { color: #fff; }
+
+/* --------------------------------------------------------------------------
+   Keng (gorizontal) forma. Ariza — sahifaning asosiy harakati, shuning uchun
+   u bo'limning butun kengligida turadi: maydonlar bir-birining tagiga emas,
+   yonma-yon joylashadi va uzun ro'yxatga o'xshamaydi. Maydonlarning o'zi ham
+   kattaroq — tor ustunda ular kichkina ko'rinardi.
+   -------------------------------------------------------------------------- */
+.form--wide { gap: 1.15rem; }
+/* Grid elementining standart `min-width: auto` qiymati input ning tabiiy
+   kengligiga teng (size=20, ~180px) — u `minmax(0,1fr)` ustunidan kattaroq
+   bo'lib chiqib ketardi: to'rt maydon bitta uzun chiziqqa qo'shilib ko'rinar,
+   oxirgisi esa kartochkadan tashqarida qolardi. */
+.form--wide .field { min-width: 0; }
+.form--wide .field input, .form--wide .field textarea { min-width: 0; width: 100%; }
+.form--wide .field label { font-size: 0.75rem; }
+.form--wide .field input, .form--wide .field textarea {
+  padding: 1.1rem 1.2rem; border-radius: 12px; font-size: 1.0625rem; }
+/* Maydonning ichki tuzilishi: chapda belgi, aylanmada esa o'ngda o'lchov
+   birligi. To'rt maydon bir xil dumaloq quti bo'lib turganda ular bir-biridan
+   faqat yozuvi bilan farq qilardi; radius ham 16px edi — kartochka, tugma va
+   ikonkalar ham dumaloq bo'lgani uchun hammasi bitta shaklga qo'shilib
+   ketardi. Endi maydonlar biroz qat'iyroq (12px) va o'z belgisi bilan. */
+.field__c { position: relative; display: grid; }
+.field__ic {
+  position: absolute; left: 0.95rem; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; color: var(--w-40); pointer-events: none;
+  transition: color 0.3s var(--ease); }
+.form--wide .field__c input { padding-left: 2.85rem; }
+.field__c:focus-within .field__ic { color: var(--b3); }
+/* O'lchov birligi — maydon ichida, matn uning ostiga kirib ketmasin */
+.field__suf {
+  position: absolute; right: 0.95rem; top: 50%; transform: translateY(-50%);
+  font-size: 0.8125rem; color: var(--w-40); pointer-events: none; }
+.form--wide .field__c--suf input { padding-right: 5.4rem; }
+.form--wide .field textarea { min-height: 132px; }
+.form--wide .form__foot { display: grid; gap: 0.9rem; justify-items: center; margin-top: 0.2rem; }
+.form--wide .form__foot .btn { width: 100%; margin-top: 0; }
+.form--wide .form__c { margin-top: 0; }
+
+/* sm — ikki ustun: telefonning albom holati va planshet */
+@media (min-width: 640px) {
+  .form--wide { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem 1.4rem; }
+  /* erkin matn va tugma qatori — har doim butun kenglikda */
+  .form--wide .field--full, .form--wide .form__foot { grid-column: 1 / -1; }
+  /* Qatordagi maydonlar bir xil balandlikda cho'zilmasin */
+  .form--wide .field { align-content: start; }
+  /* Tugma o'ngda, izohlar chapda. Flex bilan tor ekranda izohlar tugmaning
+     tagiga tushib ketardi va tugma o'ng chekkada osilib qolardi — grid
+     ustunlari joylashuvni qat'iy ushlaydi, matn esa ichida ko'chadi. */
+  .form--wide .form__foot {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; justify-items: stretch;
+    align-items: center; gap: 0.9rem 1.5rem; }
+  .form--wide .form__notes { grid-area: 1 / 1; text-align: left; }
+  .form--wide .form__foot .btn {
+    grid-area: 1 / 2; width: auto; min-width: 13.5rem; padding: 1.05rem 2rem; font-size: 1rem; }
+  .form--wide .form__notes .form__n { text-align: left; }
+}
+
+/* lg — to'rt qisqa maydon bitta qatorda, erkin matn esa ostida butun kenglikda */
+@media (min-width: 1080px) {
+  .form--wide { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.3rem 1.5rem; }
+  .form--wide .field textarea { min-height: 116px; }
+}
 
 /* ==========================================================================
    Futer
